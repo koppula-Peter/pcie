@@ -25,4 +25,7 @@ run_proof verification/formal/tb_fifo_sync_formal.sv tb_fifo_sync_formal \
 run_proof verification/formal/tb_fifo_async_formal.sv tb_fifo_async_formal \
   rtl/common/pcie_async_fifo.sv
 
+run_proof verification/formal/tb_arbiter_formal.sv tb_arbiter_formal \
+  rtl/common/pcie_arbiter_rr.sv
+
 echo "ALL FORMAL PROOFS PASSED"
