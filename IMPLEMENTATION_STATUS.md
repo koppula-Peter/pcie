@@ -42,6 +42,12 @@ FPGA_VERIFIED · LINUX_VERIFIED · HARDWARE_VERIFIED · COMPLIANCE_TESTED
 
 | Feature | ID(s) | Status |
 |---|---|---|
+| Sync FIFO primitive | PHASE1-COMMON-001 | UNIT_VERIFIED + FORMAL (48-step BMC) — commit 95b7d28 |
+| Async FIFO primitive (Gray CDC) | PHASE1-COMMON-002 | UNIT_VERIFIED (multi-clock) + FORMAL (documented abstraction) — b51f043 |
+| RR arbiter primitive | PHASE1-COMMON-003 | UNIT_VERIFIED + FORMAL (invariants; fairness in L1) — fd38e70 |
+| Register slice (skid buffer) | PHASE1-COMMON-004 | UNIT_VERIFIED + FORMAL; field bug found by random stress, fixed, evidence archived — d86544f |
+| Telemetry counters (wrap/sat) | PHASE1-COMMON-005 | UNIT_VERIFIED + FORMAL — 4117b34 |
+| Unified unit regression sweep | VER-001 L1 | ci/run_unit.sh: 6/6 suites PASS at Phase-1 gate |
 | Standards reference matrix | — | ARCHITECTED |
 | Device capability matrix (GTYP extraction done) | PCIE-HW-001/009 | ARCHITECTED (+16-GTYP pkg evidence) |
 | Function Manager architecture | PRD-011 | ARCHITECTED |

@@ -20,25 +20,29 @@
 6. **Standalone migration (D-014):** extracted from IP_dev monorepo to
    `/home/peter/Desktop/pcie` with its own private GitHub remote.
 
-## In progress: K-1a synchronous FIFO
+## K-1 / Phase 1: COMPLETE (gate green)
 
-- `rtl/common/pcie_sync_fifo.sv` written (count-based, any DEPTH>=1,
-  overflow/underflow suppression + event pulses, PCIE_ASSERT set).
-- `verification/unit/tb_pcie_sync_fifo.sv`: golden-queue scoreboard TB.
-  STATUS: **RED** — one-entry divergence between DUT and golden model at
-  fill-to-full boundary (last-push rejection + off-by-one during drain).
-  Root cause under investigation; instrumented run next. No forward
-  progress to K-1b until GREEN.
-- `verification/formal/tb_fifo_sync_formal.sv` drafted (P1–P4), not yet run.
+All five primitives implemented, independently verified (L0 lint, L1 seeded
+randomized+directed unit sims, L2 bounded formal proofs via yosys sat,
+synthesis elaboration) and committed individually:
+sync fifo (95b7d28), async fifo (b51f043), rr arbiter (fd38e70),
+reg slice (d86544f), counters (4117b34). Unified regression added
+(ci/run_unit.sh, 6/6 PASS). Traceability matrix TRC-001 created.
+
+Field-evidence highlights: reg-slice data-loss bug caught ONLY by randomized
+stress (offer-while-full overwrote parked beat) - fixed with acceptance-gated
+capture; async-fifo TB protocol discipline codified (pre-edge handshake
+sampling, post-edge registered-data sampling); formal oracle itself had a
+width-cast precedence bug that BMC exposed - proof infrastructure is also
+under test.
 
 ## Next actions (priority order)
 
 | # | Action | Milestone |
 |---|---|---|
-| N-16 | Fix K-1a DUT/TB divergence; all gates green; commit | Phase 1 |
-| N-17 | K-1b async FIFO (+formal under documented assumptions) | Phase 1 |
-| N-18 | K-1c RR arbiter; N-19 K-1d register slice; N-20 K-1e counters | Phase 1 |
-| N-21 | ci/run_unit.sh sweep + Phase 1 gate + milestone commit/push | Phase 1 |
+| N-24 | M2a pcie_pkg.sv centralized TLP types (no magic slicing rule) | Milestone 2 |
+| N-25 | M2b byte-enable/length engine + exhaustive corner tests | Milestone 2 |
+| N-26 | M2c TLP decoder/encoder vs Python refmodel cross-check | Milestone 2 |
 | N-22 | PRD §1–§2 dual-track revision per D-012 (OI-011) | M1 rev |
 | N-23 | THIRD_PARTY.md scaffold before any external reference lands | ongoing |
 
