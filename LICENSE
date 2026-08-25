@@ -1,0 +1,5 @@
+Apache License 2.0 placeholder — see DECISIONS.md D-002.
+
+Final license selection is pending project-owner confirmation (commercial vs
+open-source distribution affects PCI-SIG spec-derived material handling:
+specification text itself may never be redistributed regardless of code license).

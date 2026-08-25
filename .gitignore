@@ -1,0 +1,43 @@
+# Build artifacts
+*.jou
+*.log
+*.str
+*.wdb
+*.pb
+*.dcp
+*.bit
+*.bin
+*.ltx
+*.xpr
+*.runs/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.sim/
+*.gen/
+vivado/*/project*/
+Xilinx/
+.xil/
+
+# Simulation
+work/
+*.vcd
+*.wlf
+*.vsdb
+obj_dir/
+verilator_out/
+covhtmlreport/
+
+# Software
+*.o
+*.ko
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+
+# Editors / OS
+*~
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,84 @@
+schema_version: 1
+
+space:
+  name: type0_config_space
+  address_width_bits: 12
+  word_bytes: 4
+
+module_prefix: pcie_cfg
+
+parameters:
+  - name: PCIE_VENDOR_ID
+    width: 16
+    default: "16'h10EE"
+    note: AMD/Xilinx PCI-SIG assigned vendor id; owner may override
+  - name: PCIE_DEVICE_ID
+    width: 16
+    default: "16'hA001"
+    note: placeholder device id; freeze at M6 review
+  - name: PCIE_REVISION_ID
+    width: 8
+    default: "8'h00"
+  - name: PCIE_CLASS_CODE
+    width: 24
+    default: "24'h06_04_00"
+    note: placeholder; per-profile class code frozen with profiles
+  - name: CFG_CAP_PTR
+    width: 12
+    default: "12'h040"
+    note: capability list head dword offset; must match capability chain layout
+
+registers:
+  - name: ID
+    offset: 0x00
+    access: RO
+    fields:
+      - {name: VENDOR_ID, lsb: 0, width: 16, reset_param: PCIE_VENDOR_ID}
+      - {name: DEVICE_ID, lsb: 16, width: 16, reset_param: PCIE_DEVICE_ID}
+
+  - name: CMD_STATUS
+    offset: 0x04
+    access: RW
+    write_mask: "32'h0000FFFF"
+    reset: "32'h00000000"
+    fields:
+      - {name: COMMAND, lsb: 0, width: 16}
+      - {name: STATUS, lsb: 16, width: 16, hw_driven: true}
+
+  - name: REV_CLASS
+    offset: 0x08
+    access: RO
+    fields:
+      - {name: REV_ID, lsb: 0, width: 8, reset_param: PCIE_REVISION_ID}
+      - {name: CLASS_CODE, lsb: 8, width: 24, reset_param: PCIE_CLASS_CODE}
+
+  - name: CACHE_INFO
+    offset: 0x0C
+    access: RW
+    write_mask: "32'h0000FFFF"
+    reset: "32'h00000000"
+    fields:
+      - {name: CACHE_LINE_SIZE, lsb: 0, width: 8}
+      - {name: LATENCY_TIMER, lsb: 8, width: 8}
+      - {name: HEADER_TYPE, lsb: 16, width: 8, ro_value: "8'h00"}
+      - {name: BIST, lsb: 24, width: 8}
+
+  - name: CAP_PTR
+    offset: 0x34
+    access: RO
+    fields:
+      - {name: PTR, lsb: 0, width: 8, reset_param: CFG_CAP_PTR}
+      - {name: RSVD, lsb: 8, width: 24}
+
+reserved_offsets:
+  - 0x10
+  - 0x14
+  - 0x18
+  - 0x1C
+  - 0x20
+  - 0x24
+  - 0x28
+  - 0x2C
+  - 0x30
+  - 0x38
+  - 0x3C
