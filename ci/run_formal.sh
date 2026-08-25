@@ -22,4 +22,7 @@ run_proof () { # $1 = harness file, $2 = top module, $3.. = RTL sources
 run_proof verification/formal/tb_fifo_sync_formal.sv tb_fifo_sync_formal \
   rtl/common/pcie_sync_fifo.sv
 
+run_proof verification/formal/tb_fifo_async_formal.sv tb_fifo_async_formal \
+  rtl/common/pcie_async_fifo.sv
+
 echo "ALL FORMAL PROOFS PASSED"

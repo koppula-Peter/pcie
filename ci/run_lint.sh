@@ -14,5 +14,6 @@ verilator --lint-only -Wall \
   rtl/cfg/pcie_cfg_space_top.sv \
    rtl/common/pcie_sync_2ff.sv \
   rtl/common/pcie_pulse_handshake.sv \
-  rtl/common/pcie_sync_fifo.sv
+  rtl/common/pcie_sync_fifo.sv \
+  rtl/common/pcie_async_fifo.sv
 echo "LINT OK"
