@@ -85,6 +85,62 @@ Verification evidence:
   Gray technique plus structural 2FF synchronization (A1 in harness header).
   True asynchrony is covered by the multi-clock L1 suite instead.
 
+## pcie_arbiter_rr - PHASE1-COMMON-003
+
+**Status:** UNIT_VERIFIED + FORMAL (bounded 48 steps) | L0 PASS | elab PASS
+
+N-agent (2..32) rotating-priority arbiter.
+
+Contract: one-hot grant, always a subset of requests; `ptr` = next-to-serve,
+advances only on acknowledged grants; ownership stable under consumer
+backpressure until ack; spurious ack tolerated; grant_idx_o provided for
+register/telemetry use. Scan indices precomputed into an array then a plain
+priority pass (portable-subset rule D-010; dynamic function-indexed scan was
+replaced after cross-tool issues).
+
+Evidence: L1 directed (idle/single/rotation/backpressure/fairness window/
+spurious ack) + 30000-cycle randomized vs independent mirror model;
+L2 bounded proofs P1 onehot0, P2 grant subset + valid==|req|, P3 grant ==
+independent scan under shadow-pointer contract, P5 ownership stability.
+Fairness/liveness NOT claimed in formal - deterministic window evidence in
+L1 (T5). Bugs found & fixed en route (history has evidence): probe-addition
+overflow before modulo; scan-start convention collision.
+
+## pcie_reg_slice - PHASE1-COMMON-004
+
+**Status:** UNIT_VERIFIED + FORMAL (bounded 48 steps) | L0 PASS | elab PASS
+
+Full-throughput valid/ready skid-buffer slice (output reg + skid reg,
+2-beat capacity), parameterized WIDTH.
+
+Guarantees: payload stable while `o_valid && !o_ready`; accepted beats never
+dropped/duplicated; `i_ready` low only when both slots hold beats.
+
+**Field bug caught by randomized stress (kept as evidence):** an
+offered-but-NOT-accepted beat (i_valid=1 while i_ready=0 with both slots
+full) overwrote the parked skid beat -> permanent data loss. Fix: internal
+captures gated by actual acceptance (`i_valid && i_ready`). Minimal repro
+preserved in git history. TB discipline codified from this module onward:
+request-side handshake sampled pre-edge; registered response data sampled
+post-edge.
+
+Evidence: L1 four-quadrant directed + stability watcher + zero-bubble
+streaming + 8000-beat randomized run; L2 shadow-queue oracle (order/no-loss/
+no-dup) + stability + ready/capacity contract, 48 steps.
+
+## pcie_counter - PHASE1-COMMON-005
+
+**Status:** UNIT_VERIFIED + FORMAL (bounded 48 steps) | L0 PASS | elab PASS
+
+Event counter, WIDTH any, SATURATE selects wrap (telemetry default) vs
+saturate-with-event-pulse (error/drop counters). Multi-bit increments
+supported (inc_value_i); clear_i dominates increment; deterministic reset.
+
+Evidence: L1 W4 exhaustive boundaries (wrap sequence exactness, saturation
+hold/event pulse semantics, zero-increment nop, clear priority) plus W32
+large-value crossings; L2 wrap-model equivalence, saturation monotonicity,
+clear dominance at 48 steps.
+
 ---
-*Entries appended as Phase 1 primitives complete (arbiter, register slice,
-counters).*
+*Phase 1 common infrastructure complete: sync FIFO, async FIFO, RR arbiter,
+register slice, counters - all L0/L1/L2 green, elaboration clean.*

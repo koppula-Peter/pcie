@@ -31,4 +31,7 @@ run_proof verification/formal/tb_arbiter_formal.sv tb_arbiter_formal \
 run_proof verification/formal/tb_reg_slice_formal.sv tb_reg_slice_formal \
   rtl/common/pcie_reg_slice.sv
 
+run_proof verification/formal/tb_counter_formal.sv tb_counter_formal \
+  rtl/common/pcie_counter.sv
+
 echo "ALL FORMAL PROOFS PASSED"
