@@ -62,12 +62,12 @@ module tb_fifo_sync_formal #(
     pop_eff  = rd_en & ((mc > '0) || wr_en);
   end
 
-  // tail = (mh + mc) mod D ; single conditional subtraction of D
-  logic [PTR_W+1:0] tail_sum;
+  // tail = (mh + mc) mod D ; sum < 2D so one conditional subtract suffices
+  logic [PTR_W:0]   tail_sum;
   logic [PTR_W-1:0] tail;
   always_comb begin
-    tail_sum = {2'b00, mh} + {{(PTR_W+2-CNT_W){1'b0}}, mc};
-    tail     = (tail_sum >= PTR_W+2'(D)) ? PTR_W'(tail_sum - PTR_W+2'(D)) : tail_sum[PTR_W-1:0];
+    tail_sum = {1'b0, mh} + {{(PTR_W+1-CNT_W){1'b0}}, mc};
+    tail     = (tail_sum >= PTR_W+1'(D)) ? PTR_W'(tail_sum - D) : tail_sum[PTR_W-1:0];
   end
 
   logic        seen_pop;
@@ -84,9 +84,10 @@ module tb_fifo_sync_formal #(
         assert (count == '0);
       end
     end else begin
-      // record expected datum BEFORE state update
+      // record expected datum BEFORE state update; pop-at-empty passes the
+      // simultaneously-written datum straight through (RTL contract)
       seen_pop <= pop_eff;
-      seen_exp <= mq[mh];
+      seen_exp <= (mc == '0 && push_eff) ? wdata : mq[mh];
 
       if (pop_eff)  mh   <= inc(mh);
       if (push_eff) mq[tail] <= wdata;
@@ -103,8 +104,7 @@ module tb_fifo_sync_formal #(
 
     // ---- P2: registered read data vs recorded expectation -----------
     if (rst_n && seen_pop) begin
-      assert (rdata == seen_exp)
-        else $error("formal: popped %02x expected %02x", rdata, seen_exp);
+      assert (rdata == seen_exp);
     end
   end
 

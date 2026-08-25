@@ -59,7 +59,10 @@ module tb_pcie_sync_fifo;
   logic s_push_acc, s_pop_acc;
   logic [W-1:0] got_data;
 
+  // Drive on negedge (never at edge timesteps - avoids simulator scheduling
+  // races); sample acceptance flags pre-edge, read data post-edge.
   task automatic step2(input logic wr, input logic rd, input logic [W-1:0] wd);
+    @(negedge clk);
     m_wr = wr; m_rd = rd; m_wdata = wd;
     #1;
     s_push_acc = wr & (~m_full | rd);
@@ -155,8 +158,14 @@ module tb_pcie_sync_fifo;
     // ================= T7 wraparound ordering =================
     while (gq.size() > 0) pop_check();
     chk("T7a drained to empty", m_empty === 1'b1);
-    for (i = 0; i < 20; i++) push(W'(i * 3 + 1));
+    for (i = 0; i < 16; i++) push(W'(i * 3 + 1));
     chk("T7b refilled to full", m_full === 1'b1);
+    // deliberate overfill probes must be suppressed without disturbing state
+    for (i = 0; i < 3; i++) begin
+      step2(1'b1, 1'b0, W'(8'hD0 + i));
+      chk($sformatf("T7b%d overfill suppressed+event", i),
+          s_push_acc === 1'b0 && m_ovf === 1'b1);
+    end
     while (gq.size() > 0) pop_check();
     chk("T7c order preserved across wraps", errors == 0);
 
@@ -164,6 +173,12 @@ module tb_pcie_sync_fifo;
     step2(1'b0, 1'b1, '0);
     chk("T5a underflow suppressed (still empty)", m_empty === 1'b1);
     chk("T5b underflow event pulsed", m_unf === 1'b1);
+
+    // T5c: DEFINED CONTRACT - simultaneous push+pop at empty passes the
+    // incoming datum straight through; occupancy stays zero.
+    step2(1'b1, 1'b1, 8'h7A);
+    chk("T5c sim-op at empty returns wdata", s_pop_acc && got_data === 8'h7A);
+    chk("T5d occupancy unchanged after pass-through", m_count === 5'd0);
 
     for (i = 0; i < 3; i++) push(W'(i));
     chk("T4a aempty deasserted (count=3 > 2)", m_aempty === 1'b0);
@@ -179,7 +194,10 @@ module tb_pcie_sync_fifo;
       op    = $urandom_range(99);
       rnd_d = W'($urandom());
       if (op < 52) begin
-        push(rnd_d);
+        // random-phase pushes MAY be suppressed at full - that is legal DUT
+        // behavior; only the scoreboard tracks what was actually accepted.
+        step2(1'b1, 1'b0, rnd_d);
+        if (s_push_acc) gq.push_back(rnd_d);
       end else if (op < 98) begin
         if (gq.size() > 0) pop_check();
         else step2(1'b0, 1'b1, '0);     // deliberate underflow probe
